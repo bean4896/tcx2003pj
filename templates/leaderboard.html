@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - All Assessments</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+    <style>
+        .assessment-card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            margin-bottom: 2rem;
+        }
+        .rank-number {
+            font-weight: bold;
+            font-size: 16px;
+            color: #495057;
+        }
+        .btn {
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .export-btn {
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/home">
+                <i class="bi bi-trophy me-2"></i>Leaderboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <span class="nav-link">
+                        <i class="bi bi-person-circle me-1"></i>
+                        {{ session.get('username', 'Guest') }}
+                    </span>
+                </li>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Header with Export Button -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">Assessment Leaderboards</h1>
+            <div class="btn-group">
+                <a href="{{ url_for('leaderboard.export_leaderboard') }}" class="btn btn-success export-btn">
+                    <i class="bi bi-file-earmark-excel me-1"></i>
+                    Export All
+                </a>
+                <button class="btn btn-outline-secondary" onclick="window.location.reload()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Assessments List -->
+        {% if assessments %}
+            {% for assessment in assessments %}
+            <div class="card assessment-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ assessment.title }}</h5>
+                            {% if assessment.description %}
+                            <small class="text-muted">{{ assessment.description }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <div class="d-flex flex-column align-items-end">
+                                <small class="text-muted">Total Tasks: {{ assessment.total_tasks }}</small>
+                                {% if assessment.due_date %}
+                                <small class="text-danger">Due: {{ assessment.due_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                                {% endif %}
+                                {% if assessment.leaderboard %}
+                                <a href="{{ url_for('leaderboard.export_single_assessment', assessment_id=assessment.aid) }}" 
+                                   class="btn btn-sm btn-outline-success mt-2">
+                                    <i class="bi bi-download me-1"></i>
+                                    Export This
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    {% if assessment.leaderboard %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Username</th>
+                                    <th>Total Score</th>
+                                    <th>Avg Score</th>
+                                    <th>Tasks Complete</th>
+                                    <th>Last Submission</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in assessment.leaderboard %}
+                                <tr>
+                                    <td><span class="rank-number">#{{ entry.rank }}</span></td>
+                                    <td>{{ entry.username }}</td>
+                                    <td class="text-success">{{ "%.1f"|format(entry.total_score) }}</td>
+                                    <td>{{ "%.1f"|format(entry.average_score) }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ entry.completed_tasks }}/{{ assessment.total_tasks }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ entry.last_submission.strftime('%Y-%m-%d %H:%M') if entry.last_submission else 'N/A' }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-clipboard-x text-muted h1"></i>
+                        <p class="text-muted mt-2">No submissions yet for this assessment</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-clipboard-x text-muted h1"></i>
+                <h5 class="mt-3">No Assessments Available</h5>
+                <p class="text-muted">There are currently no assessments to display.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

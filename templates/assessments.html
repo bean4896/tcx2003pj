@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessments</title>
+        <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="text-end text-muted mb-3">
+            Logged in as: <strong>{{ username }}</strong> ({{ role }})
+        </div>
+        
+        <h1 class="border-bottom pb-2 mb-4">Assessments</h1>
+        
+        <nav class="mb-4">
+            <a href="/home" class="me-3">Home</a>
+            <a href="/assessments" class="me-3">Assessments</a>
+            <a href="/submissions" class="me-3">My Submissions</a>
+            <a href="/account">Account</a>
+        </nav>
+
+        {% if assessments %}
+            <div class="row">
+                {% for assessment in assessments %}
+                    <div class="col-12 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="card-title">{{ assessment.title }}</h5>
+                                    <small class="{% if assessment.is_overdue %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                        {% if assessment.due_date %}
+                                            Due: {{ assessment.due_date.strftime('%Y-%m-%d %H:%M') }}
+                                        {% else %}
+                                            No due date
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                
+                                {% if assessment.description %}
+                                    <p class="card-text">{{ assessment.description }}</p>
+                                {% endif %}
+                                
+                                {% if role == 'student' %}
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Progress: {{ assessment.submitted_tasks }}/{{ assessment.total_tasks }} tasks completed</span>
+                                        <a href="/assessment/{{ assessment.aid }}" class="btn btn-primary btn-sm">View Tasks</a>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Total tasks: {{ assessment.total_tasks }}</span>
+                                        <a href="/assessment/{{ assessment.aid }}" class="btn btn-primary btn-sm">View Details</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                No active assessments available at the moment.
+            </div>
+        {% endif %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
