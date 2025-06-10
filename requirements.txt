@@ -1,0 +1,9 @@
+Flask==3.1.1
+mysql-connector-python==9.3.0
+PyMySQL==1.1.1
+pandas==2.2.3
+numpy==2.0.2
+openpyxl==3.1.5
+python-dotenv==1.1.0
+python-dateutil==2.9.0.post0
+pytz==2025.2
